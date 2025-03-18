@@ -19,14 +19,16 @@ const carouselRoutes = require('./routes/carouselRoutes');
 const app = express();
 
 // Porta definida no .env ou padrão 5000
+// Em serviços como Railway, process.env.PORT é fornecido automaticamente
 const PORT = process.env.PORT || 5000;
 
 // ======================================
 // 1. Conectar ao MongoDB
 // ======================================
 connectDB(); 
-// Certifique-se de que a função connectDB faz algo como:
-// mongoose.connect(process.env.MONGO_URI).then(...).catch(...)
+// A função connectDB deve usar:
+// mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+//   .then(...).catch(...)
 
 // ======================================
 // 2. Middlewares globais
@@ -34,9 +36,9 @@ connectDB();
 app.use(express.json());
 app.use(helmet());
 
-// Configura CORS usando as variáveis de ambiente se quiser restringir a domínios específicos
+// Configura CORS - Ajuste origin para o seu domínio em produção, se quiser restringir
 app.use(cors({
-  origin: '*', // Ajuste para "https://seusite.com" em produção
+  origin: '*',
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization','Origin','X-Requested-With','Accept'],
   credentials: true
@@ -45,7 +47,7 @@ app.use(cors({
 // Limite de requisições (rate limiting)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100 // Máximo de 100 requisições por IP
+  max: 100 // Máximo de 100 requisições por IP nesse intervalo
 });
 app.use(limiter);
 
@@ -103,6 +105,7 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
   }
 
   // Monta a URL final para acesso ao arquivo
+  // Em produção, isso se adapta ao domínio e porta corretos
   const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
   res.status(200).json({ imageUrl });
 });

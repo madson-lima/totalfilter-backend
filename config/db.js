@@ -5,7 +5,10 @@ const mongoose = require('mongoose');
 async function connectDB() {
   try {
     // Conectando ao MongoDB usando a URI do arquivo .env
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
 
     console.log('✅ Conectado ao MongoDB Atlas com sucesso!');
   } catch (error) {
@@ -16,3 +19,4 @@ async function connectDB() {
 
 // Exportar a função de conexão
 module.exports = connectDB;
+

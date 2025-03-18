@@ -65,7 +65,7 @@ router.delete('/:imageFile', verifyToken, async (req, res) => {
     // Supondo que no doc.images armazenamos algo como "http://localhost:5000/uploads/1683213073453.jpg"
     // Precisamos identificar qual item do array contém 'imageFile'.
     // Exemplo de comparação:
-    const fullUrlToRemove = `http://localhost:5000/uploads/${imageFile}`;
+    const fullUrlToRemove = `https://totalfilter-backend-production.up.railway.app/uploads/${imageFile}`;
 
     const index = doc.images.indexOf(fullUrlToRemove);
     if (index === -1) {
