@@ -1,35 +1,33 @@
 const { validationResult } = require('express-validator');
-const Product = require('../models/Product'); // Modelo do Produto
+const Product = require('../models/Product');
 
-// 📌 Criar Produto
-exports.createProduct = async (req, res) => {
+exports.createProduct = async (req, res, newProductData) => {
   try {
-    const { name, description, price, imageUrl } = req.body;
+    // Se "newProductData" vier do route 'upload'
+    // ou se não vier, use req.body
+    let { name, description, price, imageUrl } = req.body;
+    if (newProductData) {
+      ({ name, description, price, imageUrl } = newProductData);
+    }
 
-    // Verificação básica (pode ser substituída pela validação do express-validator)
     if (!name || !description || !imageUrl) {
       return res.status(400).json({ error: 'Nome, descrição e imagem são obrigatórios.' });
     }
 
-    // ✅ Se o preço não for enviado, definir como string vazia
     const productPrice = price || "";
 
-    // Cria instância do modelo
-    const newProduct = new Product({ 
-      name, 
-      description, 
-      price: productPrice, 
-      imageUrl 
+    const newProduct = new Product({
+      name,
+      description,
+      price: productPrice,
+      imageUrl
     });
     await newProduct.save();
 
-    return res.status(201).json({
-      message: 'Produto adicionado com sucesso!',
-      newProduct
-    });
+    res.status(201).json({ message: 'Produto adicionado com sucesso!', newProduct });
   } catch (error) {
     console.error('Erro ao adicionar produto:', error);
-    return res.status(500).json({ error: 'Erro ao adicionar produto.' });
+    res.status(500).json({ error: 'Erro ao adicionar produto.' });
   }
 };
 
