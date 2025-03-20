@@ -1,4 +1,4 @@
-const { body, validationResult } = require('express-validator');
+const { validationResult } = require('express-validator');
 const Product = require('../models/Product'); // Modelo do Produto
 
 // 📌 Criar Produto
@@ -6,6 +6,7 @@ exports.createProduct = async (req, res) => {
   try {
     const { name, description, price, imageUrl } = req.body;
 
+    // Verificação básica (pode ser substituída pela validação do express-validator)
     if (!name || !description || !imageUrl) {
       return res.status(400).json({ error: 'Nome, descrição e imagem são obrigatórios.' });
     }
@@ -13,13 +14,22 @@ exports.createProduct = async (req, res) => {
     // ✅ Se o preço não for enviado, definir como string vazia
     const productPrice = price || "";
 
-    const newProduct = new Product({ name, description, price: productPrice, imageUrl });
+    // Cria instância do modelo
+    const newProduct = new Product({ 
+      name, 
+      description, 
+      price: productPrice, 
+      imageUrl 
+    });
     await newProduct.save();
 
-    res.status(201).json({ message: 'Produto adicionado com sucesso!', newProduct });
+    return res.status(201).json({
+      message: 'Produto adicionado com sucesso!',
+      newProduct
+    });
   } catch (error) {
     console.error('Erro ao adicionar produto:', error);
-    res.status(500).json({ error: 'Erro ao adicionar produto.' });
+    return res.status(500).json({ error: 'Erro ao adicionar produto.' });
   }
 };
 
@@ -29,17 +39,16 @@ exports.getAllProducts = async (req, res) => {
     const { search } = req.query;
     let query = {};
 
-    // Se houver parâmetro de busca, filtra pelo campo 'name'
+    // Se houver parâmetro de busca, filtra pelo campo 'name' (case-insensitive)
     if (search) {
-      // Busca parcial, case-insensitive
       query = { name: new RegExp(search, 'i') };
     }
 
     const products = await Product.find(query);
-    res.status(200).json(products);
+    return res.status(200).json(products);
   } catch (err) {
     console.error("Erro ao buscar produtos:", err);
-    res.status(500).json({ error: "Erro ao buscar produtos!" });
+    return res.status(500).json({ error: "Erro ao buscar produtos!" });
   }
 };
 
@@ -50,15 +59,16 @@ exports.getProductById = async (req, res) => {
     if (!product) {
       return res.status(404).json({ error: "Produto não encontrado!" });
     }
-    res.status(200).json(product);
+    return res.status(200).json(product);
   } catch (err) {
     console.error("Erro ao buscar produto:", err);
-    res.status(500).json({ error: "Erro ao buscar o produto!" });
+    return res.status(500).json({ error: "Erro ao buscar o produto!" });
   }
 };
 
 // 📌 Atualizar Produto
 exports.updateProduct = async (req, res) => {
+  // Caso esteja usando express-validator nas rotas, é possível capturar erros assim:
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -72,21 +82,24 @@ exports.updateProduct = async (req, res) => {
       { 
         name, 
         description, 
-        price: price || "", // ✅ Definir preço vazio se não for informado
+        price: price || "", // ✅ Se não vier preço, define string vazia
         imageUrl, 
-        isNewRelease 
+        isNewRelease
       },
-      { new: true }
+      { new: true } // Retorna o documento atualizado
     );
 
     if (!updatedProduct) {
       return res.status(404).json({ error: "Produto não encontrado!" });
     }
 
-    res.status(200).json({ message: "Produto atualizado com sucesso!", product: updatedProduct });
+    return res.status(200).json({
+      message: "Produto atualizado com sucesso!",
+      product: updatedProduct
+    });
   } catch (err) {
     console.error("Erro ao atualizar produto:", err);
-    res.status(500).json({ error: "Erro ao atualizar produto!" });
+    return res.status(500).json({ error: "Erro ao atualizar produto!" });
   }
 };
 
@@ -99,10 +112,10 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ error: "Produto não encontrado!" });
     }
 
-    res.status(200).json({ message: "Produto deletado com sucesso!" });
+    return res.status(200).json({ message: "Produto deletado com sucesso!" });
   } catch (err) {
     console.error("Erro ao deletar produto:", err);
-    res.status(500).json({ error: "Erro ao deletar produto!" });
+    return res.status(500).json({ error: "Erro ao deletar produto!" });
   }
 };
 
@@ -116,9 +129,9 @@ exports.getNewReleases = async (req, res) => {
       return res.status(404).json({ error: "Nenhum lançamento encontrado!" });
     }
 
-    res.status(200).json(newReleases);
+    return res.status(200).json(newReleases);
   } catch (error) {
     console.error("Erro ao buscar lançamentos:", error);
-    res.status(500).json({ error: "Erro ao buscar os lançamentos." });
+    return res.status(500).json({ error: "Erro ao buscar os lançamentos." });
   }
 };
